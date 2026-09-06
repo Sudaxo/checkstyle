@@ -266,10 +266,11 @@ public class RegexpCheck extends AbstractCheck {
      */
     @SuppressWarnings("deprecation")
     private void processRegexpMatches() {
-        final Matcher matcher = format.matcher(getFileContents().getText().getFullText());
+        final FileContents contents = getFileContents();
+        final FileText text = contents.getText();
+        final Matcher matcher = format.matcher(text.getFullText());
         int errorCount = 0;
         int matchCount = 0;
-        final FileText text = getFileContents().getText();
         while (errorCount < errorLimit && matcher.find()) {
             final LineColumn start = text.lineColumn(matcher.start());
             final int startLine = start.getLine();
