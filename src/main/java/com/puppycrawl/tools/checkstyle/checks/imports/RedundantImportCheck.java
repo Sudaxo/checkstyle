@@ -19,8 +19,10 @@
 
 package com.puppycrawl.tools.checkstyle.checks.imports;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.puppycrawl.tools.checkstyle.FileStatefulCheck;
 import com.puppycrawl.tools.checkstyle.api.AbstractCheck;
@@ -66,10 +68,10 @@ public class RedundantImportCheck
      */
     public static final String MSG_DUPLICATE = "import.duplicate";
 
-    /** Set of the imports. */
-    private final Set<FullIdent> imports = new HashSet<>();
-    /** Set of static and module imports. */
-    private final Set<FullIdent> staticAndModuleImports = new HashSet<>();
+    /** Imports indexed by their text. */
+    private final Map<String, List<FullIdent>> imports = new HashMap<>();
+    /** Static and module imports indexed by their text. */
+    private final Map<String, List<FullIdent>> staticAndModuleImports = new HashMap<>();
 
     /** Name of package in file. */
     private String pkgName;
@@ -126,10 +128,12 @@ public class RedundantImportCheck
                 log(ast, MSG_SAME, importText);
             }
             // Check for a duplicate import
-            imports.stream().filter(full -> importText.equals(full.getText()))
-                .forEach(full -> log(ast, MSG_DUPLICATE, full.getLineNo(), importText));
-
-            imports.add(imp);
+            final List<FullIdent> matchingImports = imports.get(importText);
+            if (matchingImports != null) {
+                matchingImports.forEach(full -> log(ast, MSG_DUPLICATE,
+                        full.getLineNo(), importText));
+            }
+            imports.computeIfAbsent(importText, key -> new ArrayList<>()).add(imp);
         }
         else {
             // Check for a duplicate static or module import
@@ -137,14 +141,13 @@ public class RedundantImportCheck
             final FullIdent importFullIdent = FullIdent.createFullIdent(identNode);
             final String importText = importFullIdent.getText();
 
-            staticAndModuleImports
-                    .stream()
-                    .filter(existingImport -> importText.equals(existingImport.getText()))
-                    .forEach(existingImport -> {
-                        log(ast, MSG_DUPLICATE, existingImport.getLineNo(), importText);
-                    });
-
-            staticAndModuleImports.add(importFullIdent);
+            final List<FullIdent> matchingImports = staticAndModuleImports.get(importText);
+            if (matchingImports != null) {
+                matchingImports.forEach(existingImport -> log(ast, MSG_DUPLICATE,
+                        existingImport.getLineNo(), importText));
+            }
+            staticAndModuleImports.computeIfAbsent(importText, key -> new ArrayList<>())
+                    .add(importFullIdent);
         }
     }
 
