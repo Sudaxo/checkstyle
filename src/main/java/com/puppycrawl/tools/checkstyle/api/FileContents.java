@@ -70,7 +70,7 @@ public final class FileContents implements CommentListener {
      * @param text the contents of the file
      */
     public FileContents(FileText text) {
-        this.text = new FileText(text);
+        this.text = text;
     }
 
     /**
@@ -79,7 +79,7 @@ public final class FileContents implements CommentListener {
      * @return an object containing the full text of the file
      */
     public FileText getText() {
-        return new FileText(text);
+        return text;
     }
 
     /**
